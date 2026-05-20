@@ -23,7 +23,7 @@ public class Post extends BaseEntity {
     private String content;
 
     @OneToMany(mappedBy = "post", fetch = LAZY, cascade = {PERSIST, REMOVE}, orphanRemoval = true)
-    private List<PostComment> comments = new ArrayList<>();
+    private final List<PostComment> comments = new ArrayList<>();
 
     public Post(String title, String content) {
         this.title = title;
