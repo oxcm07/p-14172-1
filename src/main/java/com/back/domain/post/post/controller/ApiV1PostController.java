@@ -20,6 +20,7 @@ public class ApiV1PostController {
     private final PostService postService;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public List<PostDto> getItems() {
         List<Post> items = postService.findAll();
 
@@ -30,6 +31,7 @@ public class ApiV1PostController {
     }
 
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public PostDto getItem(
             @PathVariable int id
     ) {
@@ -51,7 +53,8 @@ public class ApiV1PostController {
         );
     }
 
-    public record PostWriteForm(
+
+    public record PostWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
             String title,
@@ -61,17 +64,28 @@ public class ApiV1PostController {
     ) {
     }
 
+    public record PostWriteResBody(
+            long totalCount,
+            PostDto post
+    ) {
+    }
+
     @PostMapping
     @Transactional
-    public RsData<PostDto> write(
-            @Valid @RequestBody PostWriteForm form
+    public RsData<PostWriteResBody> write(
+            @RequestBody @Valid PostWriteReqBody form
     ) {
         Post post = postService.write(form.title, form.content);
 
-        return new RsData(
-                "200-1",
+        long totalCount = postService.count();
+
+        return new RsData<>(
+                "201-1",
                 "%d번 글이 생성되었습니다.".formatted(post.getId()),
-                new PostDto(post)
+                new PostWriteResBody(
+                        totalCount,
+                        new PostDto(post)
+                )
         );
     }
 }
