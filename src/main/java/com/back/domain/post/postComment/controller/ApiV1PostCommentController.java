@@ -27,7 +27,8 @@ public class ApiV1PostCommentController {
     ) {
         Post post = postService.findById(postId).get();
 
-        return post.getComments()
+        return post
+                .getComments()
                 .stream()
                 .map(PostCommentDto::new)
                 .toList();
@@ -40,6 +41,7 @@ public class ApiV1PostCommentController {
             @PathVariable int id
     ) {
         Post post = postService.findById(postId).get();
+
         PostComment postComment = post.findCommentById(id).get();
 
         return new PostCommentDto(postComment);
@@ -52,17 +54,19 @@ public class ApiV1PostCommentController {
             @PathVariable int id
     ) {
         Post post = postService.findById(postId).get();
+
         PostComment postComment = post.findCommentById(id).get();
 
         postService.deleteComment(post, postComment);
 
         return new RsData<>(
                 "200-1",
-                "%d번 댓글이 삭제되었습니다.".formatted(postComment.getId())
+                "%d번 댓글이 삭제되었습니다.".formatted(id)
         );
     }
 
-    public record PostCommentModifyReqBody(
+
+    record PostCommentModifyReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
             String content
@@ -74,16 +78,17 @@ public class ApiV1PostCommentController {
     public RsData<Void> modify(
             @PathVariable int postId,
             @PathVariable int id,
-            @RequestBody @Valid PostCommentModifyReqBody reqBody
+            @Valid @RequestBody PostCommentModifyReqBody reqBody
     ) {
         Post post = postService.findById(postId).get();
+
         PostComment postComment = post.findCommentById(id).get();
 
         postService.modifyComment(postComment, reqBody.content);
 
         return new RsData<>(
                 "200-1",
-                "%d번 댓글이 수정되었습니다.".formatted(postComment.getId())
+                "%d번 댓글이 수정되었습니다.".formatted(id)
         );
     }
 }

@@ -30,6 +30,7 @@ public class ApiV1PostControllerTest {
     @Autowired
     private PostService postService;
 
+
     @Test
     @DisplayName("글 작성")
     void t1() throws Exception {
@@ -106,6 +107,7 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.msg").value("%d번 글이 삭제되었습니다.".formatted(id)));
     }
 
+
     @Test
     @DisplayName("글 단건조회")
     void t4() throws Exception {
@@ -128,23 +130,6 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.title").value(post.getTitle()))
                 .andExpect(jsonPath("$.content").value(post.getContent()));
-    }
-
-    @Test
-    @DisplayName("글 단건조회, 404")
-    void t6() throws Exception {
-        int id = Integer.MAX_VALUE;
-
-        ResultActions resultActions = mvc
-                .perform(
-                        get("/api/v1/posts/" + id)
-                )
-                .andDo(print());
-
-        resultActions
-                .andExpect(handler().handlerType(ApiV1PostController.class))
-                .andExpect(handler().methodName("getItem"))
-                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -174,4 +159,102 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
         }
     }
+
+    @Test
+    @DisplayName("글 단건조회, 404")
+    void t6() throws Exception {
+        int id = Integer.MAX_VALUE;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/posts/" + id)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("getItem"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("글 쓰기, without title")
+    void t7() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "",
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        title-NotBlank-must not be blank
+                        title-Size-size must be between 2 and 100
+                        """.stripIndent().trim()));
+    }
+
+    @Test
+    @DisplayName("글 쓰기, without content")
+    void t8() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목",
+                                            "content": ""
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("""
+                        content-NotBlank-must not be blank
+                        content-Size-size must be between 2 and 5000
+                        """.stripIndent().trim()));
+    }
+
+    @Test
+    @DisplayName("글 쓰기, with wrong json syntax")
+    void t9() throws Exception {
+
+        String wrongJsonBody = """
+                {
+                    "title": 제목",
+                    content": "내용"
+                """;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(wrongJsonBody)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.resultCode").value("400-1"))
+                .andExpect(jsonPath("$.msg").value("요청 본문이 올바르지 않습니다.".stripIndent().trim()));
+    }
+
 }
