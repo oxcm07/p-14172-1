@@ -2,6 +2,7 @@ package com.back.domain.post.post.controller;
 
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +19,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ActiveProfiles("test") // 테스트 환경에서는 test 프로파일을 활성화합니다.
-@SpringBootTest // 스프링부트 테스트 클래스임을 나타냅니다.
-@AutoConfigureMockMvc // MockMvc를 자동으로 설정합니다, POSTMAN 처럼 요청을 보낼 수 있음
-@Transactional // 각 테스트 메서드가 종료되면 롤백됩니다.
+@ActiveProfiles("test")
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
 public class ApiV1PostControllerTest {
     @Autowired
-    private MockMvc mvc; // MockMvc를 주입받습니다, @AutoConfigureMockMvc 덕분에 가능
+    private MockMvc mvc;
     @Autowired
     private PostService postService;
 
     @Test
-    @DisplayName("글 쓰기")
+    @DisplayName("글 작성")
     void t1() throws Exception {
         ResultActions resultActions = mvc
                 .perform(
@@ -42,7 +43,7 @@ public class ApiV1PostControllerTest {
                                         }
                                         """)
                 )
-                .andDo(print()); // 응답결과를 출력합니다.
+                .andDo(print());
 
         Post post = postService.findLatest().get();
         long totalCount = postService.count();
@@ -54,7 +55,11 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.resultCode").value("201-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 글이 작성되었습니다.".formatted(post.getId())))
                 .andExpect(jsonPath("$.data.totalCount").value(totalCount))
-                .andExpect(jsonPath("$.data.post.id").value(post.getId()));
+                .andExpect(jsonPath("$.data.post.id").value(post.getId()))
+                .andExpect(jsonPath("$.data.post.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.post.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.post.title").value("제목"))
+                .andExpect(jsonPath("$.data.post.content").value("내용"));
     }
 
     @Test
@@ -66,8 +71,8 @@ public class ApiV1PostControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
-                                            "title": "제목222",
-                                            "content": "내용222"
+                                            "title": "제목 new",
+                                            "content": "내용 new"
                                         }
                                         """)
                 )

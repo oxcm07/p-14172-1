@@ -53,7 +53,6 @@ public class ApiV1PostController {
         );
     }
 
-
     public record PostWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
@@ -88,7 +87,6 @@ public class ApiV1PostController {
                 )
         );
     }
-
 
     public record PostModifyReqBody(
             @NotBlank
