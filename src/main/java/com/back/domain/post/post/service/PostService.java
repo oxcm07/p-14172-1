@@ -36,8 +36,8 @@ public class PostService {
         post.modify(title, content);
     }
 
-    public void writeComment(Post post, String content) {
-        post.addComment(content);
+    public PostComment writeComment(Post post, String content) {
+        return post.addComment(content);
     }
 
     public boolean deleteComment(Post post, PostComment postComment) {
@@ -54,5 +54,11 @@ public class PostService {
 
     public Optional<Post> findLatest() {
         return postRepository.findFirstByOrderByIdDesc();
+    }
+
+    // 영속성 컨텍스트의 변경 내용을 DB에 즉시 반영하는 역할
+    // 트랜잭션이 끝나기 전이라도, 지금까지 메모리에 쌓여있던 쿼리를 즉시 DB로 전송
+    public void flush(){
+        postRepository.flush();
     }
 }
