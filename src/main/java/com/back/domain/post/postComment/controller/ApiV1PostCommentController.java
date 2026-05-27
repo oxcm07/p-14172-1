@@ -5,6 +5,8 @@ import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
 import com.back.global.rsData.RsData;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -17,18 +19,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/posts/{postId}/comments")
 @RequiredArgsConstructor
+@Tag(name = "ApiV1PostCommentController", description = "API 댓글 컨트롤러")
 public class ApiV1PostCommentController {
     private final PostService postService;
 
     @GetMapping
     @Transactional(readOnly = true)
+    @Operation(summary = "다건 조회")
     public List<PostCommentDto> getItems(
             @PathVariable int postId
     ) {
         Post post = postService.findById(postId).get();
 
-        return post
-                .getComments()
+        return post.getComments()
                 .stream()
                 .map(PostCommentDto::new)
                 .toList();
@@ -36,12 +39,12 @@ public class ApiV1PostCommentController {
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
+    @Operation(summary = "단건 조회")
     public PostCommentDto getItem(
             @PathVariable int postId,
             @PathVariable int id
     ) {
         Post post = postService.findById(postId).get();
-
         PostComment postComment = post.findCommentById(id).get();
 
         return new PostCommentDto(postComment);
@@ -49,24 +52,24 @@ public class ApiV1PostCommentController {
 
     @DeleteMapping("/{id}")
     @Transactional
+    @Operation(summary = "삭제")
     public RsData<Void> delete(
             @PathVariable int postId,
             @PathVariable int id
     ) {
         Post post = postService.findById(postId).get();
-
         PostComment postComment = post.findCommentById(id).get();
 
         postService.deleteComment(post, postComment);
 
         return new RsData<>(
                 "200-1",
-                "%d번 댓글이 삭제되었습니다.".formatted(id)
+                "%d번 댓글이 삭제되었습니다.".formatted(postComment.getId())
         );
     }
 
 
-    record PostCommentModifyReqBody(
+    public record PostCommentModifyReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
             String content
@@ -75,40 +78,43 @@ public class ApiV1PostCommentController {
 
     @PutMapping("/{id}")
     @Transactional
+    @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable int postId,
             @PathVariable int id,
-            @Valid @RequestBody PostCommentModifyReqBody reqBody
+            @RequestBody @Valid PostCommentModifyReqBody reqBody
     ) {
         Post post = postService.findById(postId).get();
-
         PostComment postComment = post.findCommentById(id).get();
 
         postService.modifyComment(postComment, reqBody.content);
 
         return new RsData<>(
                 "200-1",
-                "%d번 댓글이 수정되었습니다.".formatted(id)
+                "%d번 댓글이 수정되었습니다.".formatted(postComment.getId())
         );
     }
+
 
     public record PostCommentWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
             String content
-    ){}
+    ) {
+    }
 
     @PostMapping
     @Transactional
+    @Operation(summary = "작성")
     public RsData<PostCommentDto> write(
             @PathVariable int postId,
             @Valid @RequestBody PostCommentWriteReqBody reqBody
     ) {
         Post post = postService.findById(postId).get();
 
-        PostComment postComment = postService.writeComment(post, reqBody.content); // 댓글 정보 DB에 아직 없음
+        PostComment postComment = postService.writeComment(post, reqBody.content);
 
-        postService.flush(); // 메모리 내용을 DB에 즉시 반영 -> postComment.getId() 사용 가능
+        postService.flush();
 
         return new RsData<>(
                 "201-1",
