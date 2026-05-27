@@ -99,7 +99,10 @@ public class ApiV1PostCommentController {
     public record PostCommentWriteReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
-            String content
+            String content,
+            @NotBlank
+            @Size(min = 2, max = 10)
+            String author
     ) {
     }
 
@@ -112,7 +115,7 @@ public class ApiV1PostCommentController {
     ) {
         Post post = postService.findById(postId).get();
 
-        PostComment postComment = postService.writeComment(post, reqBody.content);
+        PostComment postComment = postService.writeComment(post, reqBody.content, reqBody.author);
 
         postService.flush();
 

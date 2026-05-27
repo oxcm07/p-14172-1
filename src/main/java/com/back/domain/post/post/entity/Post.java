@@ -21,13 +21,15 @@ import static jakarta.persistence.FetchType.LAZY;
 public class Post extends BaseEntity {
     private String title;
     private String content;
+    private String author;
 
     @OneToMany(mappedBy = "post", fetch = LAZY, cascade = {PERSIST, REMOVE}, orphanRemoval = true)
     private final List<PostComment> comments = new ArrayList<>();
 
-    public Post(String title, String content) {
+    public Post(String title, String content, String author) {
         this.title = title;
         this.content = content;
+        this.author = author;
     }
 
     public void modify(String title, String content) {
@@ -35,8 +37,8 @@ public class Post extends BaseEntity {
         this.content = content;
     }
 
-    public PostComment addComment(String content) {
-        PostComment postComment = new PostComment(this, content);
+    public PostComment addComment(String content, String author) {
+        PostComment postComment = new PostComment(this, content, author);
         comments.add(postComment);
 
         return postComment;

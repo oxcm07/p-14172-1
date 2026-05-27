@@ -18,8 +18,8 @@ public class PostService {
         return postRepository.count();
     }
 
-    public Post write(String title, String content) {
-        Post post = new Post(title, content);
+    public Post write(String title, String content, String author) {
+        Post post = new Post(title, content, author);
 
         return postRepository.save(post);
     }
@@ -36,8 +36,8 @@ public class PostService {
         post.modify(title, content);
     }
 
-    public PostComment writeComment(Post post, String content) {
-        return post.addComment(content);
+    public PostComment writeComment(Post post, String content, String author) {
+        return post.addComment(content, author);
     }
 
     public boolean deleteComment(Post post, PostComment postComment) {

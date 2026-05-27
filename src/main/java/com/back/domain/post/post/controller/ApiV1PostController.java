@@ -66,7 +66,10 @@ public class ApiV1PostController {
             String title,
             @NotBlank
             @Size(min = 2, max = 5000)
-            String content
+            String content,
+            @NotBlank
+            @Size(min = 2, max = 10)
+            String author
     ) {
     }
 
@@ -76,7 +79,7 @@ public class ApiV1PostController {
     public RsData<PostDto> write(
             @RequestBody @Valid PostWriteReqBody reqBody
     ) {
-        Post post = postService.write(reqBody.title, reqBody.content);
+        Post post = postService.write(reqBody.title, reqBody.content, reqBody.author);
 
         return new RsData<>(
                 "201-1",

@@ -41,7 +41,8 @@ public class ApiV1PostControllerTest {
                                 .content("""
                                         {
                                             "title": "제목",
-                                            "content": "내용"
+                                            "content": "내용",
+                                            "author": "작가"
                                         }
                                         """)
                 )
@@ -59,7 +60,8 @@ public class ApiV1PostControllerTest {
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(post.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.title").value("제목"))
-                .andExpect(jsonPath("$.data.content").value("내용"));
+                .andExpect(jsonPath("$.data.content").value("내용"))
+                .andExpect(jsonPath("$.data.author").value("작가"));
     }
 
     @Test
@@ -187,7 +189,8 @@ public class ApiV1PostControllerTest {
                                 .content("""
                                         {
                                             "title": "",
-                                            "content": "내용"
+                                            "content": "내용",
+                                            "author": "작가"
                                         }
                                         """)
                 )
@@ -214,7 +217,8 @@ public class ApiV1PostControllerTest {
                                 .content("""
                                         {
                                             "title": "제목",
-                                            "content": ""
+                                            "content": "",
+                                            "author": "작가"
                                         }
                                         """)
                 )

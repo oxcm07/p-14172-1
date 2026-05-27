@@ -16,10 +16,12 @@ public class PostComment extends BaseEntity {
     @JsonIgnore
     private Post post;
     private String content;
+    private String author;
 
-    public PostComment(Post post, String content) {
+    public PostComment(Post post, String content, String author) {
         this.post = post;
         this.content = content;
+        this.author =  author;
     }
 
     public void modify(String content) {
