@@ -14,7 +14,10 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -58,6 +61,39 @@ public class GlobalExceptionHandler {
                         "요청 본문이 올바르지 않습니다."
                 ),
                 BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(MemberDuplicateUsernameException.class)
+    public ResponseEntity<RsData<Void>> handle(MemberDuplicateUsernameException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "409-1",
+                        "%s(은)는 이미 사용중인 username 입니다.".formatted(ex.getUsername())
+                ),
+                CONFLICT
+        );
+    }
+
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<RsData<Void>> handle(UnauthenticatedException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "401-1",
+                        "로그인 후 이용해주세요."
+                ),
+                UNAUTHORIZED
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<RsData<Void>> handle(AccessDeniedException ex) {
+        return new ResponseEntity<>(
+                new RsData<>(
+                        "403-1",
+                        "권한이 없습니다."
+                ),
+                FORBIDDEN
         );
     }
 }
