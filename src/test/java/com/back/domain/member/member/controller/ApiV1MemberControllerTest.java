@@ -13,12 +13,18 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
@@ -170,5 +176,53 @@ class ApiV1MemberControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.resultCode").value("400-1"))
                 .andExpect(jsonPath("$.msg").value("name-Size-size must be between 2 and 30"));
+    }
+
+    @Test
+    @DisplayName("내 정보")
+    void t6() throws Exception {
+        Member member = new Member("user1", "password1", "홍길동");
+        ReflectionTestUtils.setField(member, "id", 1);
+        ReflectionTestUtils.setField(member, "createDate", LocalDateTime.of(2026, 5, 27, 13, 50, 0));
+        ReflectionTestUtils.setField(member, "modifyDate", LocalDateTime.of(2026, 5, 27, 13, 55, 0));
+
+        given(memberService.findById(1))
+                .willReturn(Optional.of(member));
+
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me")
+                                .param("actorId", "1")
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.createDate").value(startsWith("2026-05-27T13:50")))
+                .andExpect(jsonPath("$.updateDate").value(startsWith("2026-05-27T13:55")))
+                .andExpect(jsonPath("$.username").value("user1"))
+                .andExpect(jsonPath("$.name").value("홍길동"))
+                .andExpect(jsonPath("$.password").doesNotExist());
+
+        verify(memberService).findById(1);
+    }
+
+    @Test
+    @DisplayName("내 정보, actorId 파라미터 없음")
+    void t7() throws Exception {
+        ResultActions resultActions = mvc
+                .perform(
+                        get("/api/v1/members/me")
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1MemberController.class))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."))
+                .andExpect(jsonPath("$.data").value(nullValue()));
     }
 }

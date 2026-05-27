@@ -6,6 +6,8 @@ import com.back.global.globalExceptionHandler.MemberDuplicateUsernameException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -17,5 +19,13 @@ public class MemberService {
         }
 
         return memberRepository.save(new Member(username, password, name));
+    }
+
+    public Optional<Member> findById(int id) {
+        return memberRepository.findById(id);
+    }
+
+    public long count() {
+        return memberRepository.count();
     }
 }
