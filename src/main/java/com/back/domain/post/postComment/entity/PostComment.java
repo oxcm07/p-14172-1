@@ -24,7 +24,8 @@ public class PostComment extends BaseEntity {
         this.author =  author;
     }
 
-    public void modify(String content) {
+    public void modify(String content, String author) {
         this.content = content;
+        this.author = author;
     }
 }

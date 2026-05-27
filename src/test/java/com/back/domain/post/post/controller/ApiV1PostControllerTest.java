@@ -72,11 +72,13 @@ public class ApiV1PostControllerTest {
         ResultActions resultActions = mvc
                 .perform(
                         put("/api/v1/posts/" + id)
+                                .param("actorId", "3")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
                                             "title": "제목 new",
-                                            "content": "내용 new"
+                                            "content": "내용 new",
+                                            "author": "user1"
                                         }
                                         """)
                 )
@@ -88,6 +90,63 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 글이 수정되었습니다.".formatted(id)));
+    }
+
+    @Test
+    @DisplayName("글 수정, actorId 파라미터 없음")
+    void t2_1() throws Exception {
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/" + id)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new",
+                                            "author": "user1"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."))
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()));
+    }
+
+    @Test
+    @DisplayName("글 수정, 작성자가 아님")
+    void t2_2() throws Exception {
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/" + id)
+                                .param("actorId", "4")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new",
+                                            "author": "user1"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."))
+                .andExpect(jsonPath("$.data").value(Matchers.nullValue()));
     }
 
     @Test

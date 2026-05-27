@@ -55,14 +55,14 @@ public class ApiV1PostController {
     @Operation(summary = "삭제")
     public RsData<Void> delete(@PathVariable int id,
                                @RequestParam(required = false) Integer actorId) {
-        if(actorId == null){
+        if (actorId == null) {
             throw new UnauthenticatedException();
         }
 
         Post post = postService.findById(id).get();
         Member actor = memberService.findById(actorId).get();
 
-        if(!post.getAuthor().equals(actor.getUsername())){
+        if (!post.getAuthor().equals(actor.getUsername())) {
             throw new AccessDeniedException();
         }
 
@@ -110,7 +110,10 @@ public class ApiV1PostController {
             String title,
             @NotBlank
             @Size(min = 2, max = 5000)
-            String content
+            String content,
+            @NotBlank
+            @Size(min = 2, max = 10)
+            String author
     ) {
     }
 
@@ -119,11 +122,20 @@ public class ApiV1PostController {
     @Operation(summary = "수정")
     public RsData<Void> modify(
             @PathVariable int id,
-            @RequestBody @Valid PostModifyReqBody reqBody
+            @RequestBody @Valid PostModifyReqBody reqBody, @RequestParam(required = false) Integer actorId
     ) {
-        Post post = postService.findById(id).get();
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
 
-        postService.modify(post, reqBody.title, reqBody.content);
+        Post post = postService.findById(id).get();
+        Member actor = memberService.findById(actorId).get();
+
+        if (!post.getAuthor().equals(actor.getUsername())) {
+            throw new AccessDeniedException();
+        }
+
+        postService.modify(post, reqBody.title, reqBody.content, reqBody.author);
 
         return new RsData<>(
                 "200-1",

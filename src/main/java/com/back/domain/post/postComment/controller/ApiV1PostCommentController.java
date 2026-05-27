@@ -1,9 +1,13 @@
 package com.back.domain.post.postComment.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
+import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +26,7 @@ import java.util.List;
 @Tag(name = "ApiV1PostCommentController", description = "API 댓글 컨트롤러")
 public class ApiV1PostCommentController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -55,12 +60,22 @@ public class ApiV1PostCommentController {
     @Operation(summary = "삭제")
     public RsData<Void> delete(
             @PathVariable int postId,
-            @PathVariable int id
+            @PathVariable int id,
+            @RequestParam(required = false) Integer actorId
     ) {
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+        Member actor = memberService.findById(actorId).get();
 
-        postService.deleteComment(post, postComment);
+        if (!postComment.getAuthor().equals(actor.getUsername())) {
+            throw new AccessDeniedException();
+        }
+
+        postService.deleteComment(post, postComment, postComment.getAuthor());
 
         return new RsData<>(
                 "200-1",
@@ -72,7 +87,10 @@ public class ApiV1PostCommentController {
     public record PostCommentModifyReqBody(
             @NotBlank
             @Size(min = 2, max = 100)
-            String content
+            String content,
+            @NotBlank
+            @Size(min = 2, max = 10)
+            String author
     ) {
     }
 
@@ -82,12 +100,22 @@ public class ApiV1PostCommentController {
     public RsData<Void> modify(
             @PathVariable int postId,
             @PathVariable int id,
-            @RequestBody @Valid PostCommentModifyReqBody reqBody
+            @RequestBody @Valid PostCommentModifyReqBody reqBody,
+            @RequestParam(required = false) Integer actorId
     ) {
+        if (actorId == null) {
+            throw new UnauthenticatedException();
+        }
+
         Post post = postService.findById(postId).get();
         PostComment postComment = post.findCommentById(id).get();
+        Member actor = memberService.findById(actorId).get();
 
-        postService.modifyComment(postComment, reqBody.content);
+        if (!postComment.getAuthor().equals(actor.getUsername())) {
+            throw new AccessDeniedException();
+        }
+
+        postService.modifyComment(postComment, reqBody.content, reqBody.author);
 
         return new RsData<>(
                 "200-1",

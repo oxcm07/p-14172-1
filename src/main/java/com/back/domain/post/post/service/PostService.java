@@ -32,20 +32,20 @@ public class PostService {
         return postRepository.findAll();
     }
 
-    public void modify(Post post, String title, String content) {
-        post.modify(title, content);
+    public void modify(Post post, String title, String content, String author) {
+        post.modify(title, content, author);
     }
 
     public PostComment writeComment(Post post, String content, String author) {
         return post.addComment(content, author);
     }
 
-    public boolean deleteComment(Post post, PostComment postComment) {
-        return post.deleteComment(postComment);
+    public boolean deleteComment(Post post, PostComment postComment, String author) {
+        return post.deleteComment(postComment, author);
     }
 
-    public void modifyComment(PostComment postComment, String content) {
-        postComment.modify(content);
+    public void modifyComment(PostComment postComment, String content, String author) {
+        postComment.modify(content, author);
     }
 
     public void delete(Post post) {

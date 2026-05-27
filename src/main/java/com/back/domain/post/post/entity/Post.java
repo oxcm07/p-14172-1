@@ -32,9 +32,10 @@ public class Post extends BaseEntity {
         this.author = author;
     }
 
-    public void modify(String title, String content) {
+    public void modify(String title, String content, String author) {
         this.title = title;
         this.content = content;
+        this.author = author;
     }
 
     public PostComment addComment(String content, String author) {
@@ -51,7 +52,7 @@ public class Post extends BaseEntity {
                 .findFirst();
     }
 
-    public boolean deleteComment(PostComment postComment) {
+    public boolean deleteComment(PostComment postComment, String author) {
         if (postComment == null) return false;
 
         return comments.remove(postComment);
